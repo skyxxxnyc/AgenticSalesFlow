@@ -84,7 +84,7 @@ export default function LeadDetailsModal({ lead, isOpen, onClose }: LeadDetailsM
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" data-testid="modal-lead-details">
       <div className="bg-white dark:bg-slate-900 border-2 border-black dark:border-white w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col neo-shadow">
         {/* Header */}
-        <div className="bg-black dark:bg-slate-800 text-white p-6 border-b-2 border-black dark:border-white flex items-center justify-between">
+        <div className="bg-black dark:bg-slate-900 text-white p-6 border-b-2 border-black dark:border-white flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 bg-primary border-2 border-white rounded-none flex items-center justify-center font-bold">
               <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${lead.name}`} alt={lead.name} className="w-full h-full" />
@@ -104,7 +104,7 @@ export default function LeadDetailsModal({ lead, isOpen, onClose }: LeadDetailsM
         </div>
 
         {/* Tabs */}
-        <div className="border-b-2 border-black dark:border-white flex bg-gray-50 dark:bg-slate-800">
+        <div className="border-b-2 border-black dark:border-white flex bg-gray-50 dark:bg-slate-800 text-black dark:text-white">
           {(["overview", "analysis", "activity", "tasks", "deals"] as const).map((tab) => (
             <button
               key={tab}
@@ -112,7 +112,7 @@ export default function LeadDetailsModal({ lead, isOpen, onClose }: LeadDetailsM
               className={`flex-1 px-4 py-3 font-mono font-bold uppercase text-xs border-r border-black dark:border-white last:border-r-0 transition-colors ${
                 activeTab === tab
                   ? "bg-primary text-white"
-                  : "hover:bg-gray-100 dark:hover:bg-slate-700"
+                  : "text-black dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700"
               }`}
               data-testid={`tab-${tab}`}
             >
@@ -125,7 +125,7 @@ export default function LeadDetailsModal({ lead, isOpen, onClose }: LeadDetailsM
         <div className="overflow-y-auto flex-1">
           {/* Overview Tab */}
           {activeTab === "overview" && (
-            <div className="p-6 space-y-6">
+            <div className="p-6 space-y-6 text-black dark:text-white">
               <div className="grid grid-cols-2 gap-6">
                 <div>
                   <h3 className="font-mono font-bold text-xs uppercase mb-3">Contact Details</h3>
@@ -212,12 +212,12 @@ export default function LeadDetailsModal({ lead, isOpen, onClose }: LeadDetailsM
 
           {/* Analysis Tab */}
           {activeTab === "analysis" && (
-            <div className="p-6">
+            <div className="p-6 text-black dark:text-white">
               {lead.sdrAnalysis ? (
                 <div className="space-y-4">
                   <div className="bg-gray-50 dark:bg-slate-800 p-4 border-2 border-black dark:border-white rounded-none">
-                    <h3 className="font-mono font-bold text-xs uppercase mb-3">SDR Analysis</h3>
-                    <pre className="font-mono text-sm whitespace-pre-wrap" data-testid="text-sdr-analysis">
+                    <h3 className="font-mono font-bold text-xs uppercase mb-3 text-black dark:text-white">SDR Analysis</h3>
+                    <pre className="font-mono text-sm whitespace-pre-wrap text-black dark:text-white" data-testid="text-sdr-analysis">
                       {JSON.stringify(lead.sdrAnalysis, null, 2)}
                     </pre>
                   </div>
@@ -230,22 +230,22 @@ export default function LeadDetailsModal({ lead, isOpen, onClose }: LeadDetailsM
 
           {/* Activity Tab */}
           {activeTab === "activity" && (
-            <div className="p-6">
+            <div className="p-6 text-black dark:text-white">
               {activities.length === 0 ? (
                 <p className="text-muted-foreground font-mono">No activities recorded yet.</p>
               ) : (
                 <div className="space-y-4">
                   {activities.map((activity: Activity) => (
-                    <div key={activity.id} className="border-l-4 border-accent pl-4 py-2" data-testid={`activity-item-${activity.id}`}>
+                    <div key={activity.id} className="border-l-4 border-accent pl-4 py-2 text-black dark:text-white" data-testid={`activity-item-${activity.id}`}>
                       <div className="flex items-center justify-between">
-                        <h4 className="font-mono font-bold text-sm uppercase">{activity.title}</h4>
-                        <span className="font-mono text-xs text-muted-foreground">
+                        <h4 className="font-mono font-bold text-sm uppercase text-black dark:text-white">{activity.title}</h4>
+                        <span className="font-mono text-xs text-gray-600 dark:text-gray-400">
                           {new Date(activity.createdAt).toLocaleDateString()}
                         </span>
                       </div>
-                      <p className="font-mono text-sm text-muted-foreground mt-1">{activity.type}</p>
+                      <p className="font-mono text-sm text-gray-600 dark:text-gray-400 mt-1">{activity.type}</p>
                       {activity.description && (
-                        <p className="font-mono text-sm mt-2">{activity.description}</p>
+                        <p className="font-mono text-sm text-black dark:text-white mt-2">{activity.description}</p>
                       )}
                     </div>
                   ))}
@@ -256,7 +256,7 @@ export default function LeadDetailsModal({ lead, isOpen, onClose }: LeadDetailsM
 
           {/* Tasks Tab */}
           {activeTab === "tasks" && (
-            <div className="p-6">
+            <div className="p-6 text-black dark:text-white">
               <div className="mb-6">
                 <div className="flex gap-2">
                   <input
@@ -269,7 +269,7 @@ export default function LeadDetailsModal({ lead, isOpen, onClose }: LeadDetailsM
                         createTaskMutation.mutate(newTaskTitle);
                       }
                     }}
-                    className="flex-1 px-3 py-2 border-2 border-black dark:border-white font-mono text-sm bg-white dark:bg-slate-800"
+                    className="flex-1 px-3 py-2 border-2 border-black dark:border-white font-mono text-sm bg-white dark:bg-slate-800 text-black dark:text-white"
                     data-testid="input-new-task"
                   />
                   <button
@@ -289,7 +289,7 @@ export default function LeadDetailsModal({ lead, isOpen, onClose }: LeadDetailsM
                   {tasks.map((task: Task) => (
                     <div
                       key={task.id}
-                      className="flex items-center gap-3 p-3 border-2 border-black dark:border-white hover:bg-gray-50 dark:hover:bg-slate-800 cursor-pointer transition-colors"
+                      className="flex items-center gap-3 p-3 border-2 border-black dark:border-white hover:bg-gray-50 dark:hover:bg-slate-800 cursor-pointer transition-colors text-black dark:text-white"
                       onClick={() => updateTaskMutation.mutate({ taskId: task.id, completed: !task.completed })}
                       data-testid={`task-item-${task.id}`}
                     >
@@ -302,12 +302,12 @@ export default function LeadDetailsModal({ lead, isOpen, onClose }: LeadDetailsM
                         {task.completed && <CheckCircle2 className="w-4 h-4 text-white" />}
                       </button>
                       <div className="flex-1">
-                        <p className={`font-mono text-sm ${task.completed ? 'line-through text-muted-foreground' : ''}`}>
+                        <p className={`font-mono text-sm ${task.completed ? 'line-through text-gray-600 dark:text-gray-400' : 'text-black dark:text-white'}`}>
                           {task.title}
                         </p>
                       </div>
                       {task.dueDate && (
-                        <span className="font-mono text-xs text-muted-foreground">
+                        <span className="font-mono text-xs text-gray-600 dark:text-gray-400">
                           {new Date(task.dueDate as string).toLocaleDateString()}
                         </span>
                       )}
@@ -320,28 +320,28 @@ export default function LeadDetailsModal({ lead, isOpen, onClose }: LeadDetailsM
 
           {/* Deals Tab */}
           {activeTab === "deals" && (
-            <div className="p-6">
+            <div className="p-6 text-black dark:text-white">
               {deals.length === 0 ? (
                 <p className="text-muted-foreground font-mono">No deals linked to this lead yet.</p>
               ) : (
                 <div className="space-y-4">
                   {deals.map((deal: Deal) => (
-                    <div key={deal.id} className="border-2 border-black dark:border-white p-4" data-testid={`deal-item-${deal.id}`}>
+                    <div key={deal.id} className="border-2 border-black dark:border-white p-4 text-black dark:text-white" data-testid={`deal-item-${deal.id}`}>
                       <div className="flex items-center justify-between mb-2">
-                        <h4 className="font-mono font-bold uppercase">{deal.title}</h4>
+                        <h4 className="font-mono font-bold uppercase text-black dark:text-white">{deal.title}</h4>
                         <span className="font-mono text-xs px-2 py-1 bg-primary text-white border-1 border-black">
                           {deal.status}
                         </span>
                       </div>
                       {deal.description && (
-                        <p className="font-mono text-sm text-muted-foreground mb-2">{deal.description}</p>
+                        <p className="font-mono text-sm text-gray-600 dark:text-gray-400 mb-2">{deal.description}</p>
                       )}
                       <div className="flex items-center justify-between">
                         {deal.value && (
-                          <span className="font-mono font-bold text-sm">${deal.value.toLocaleString()}</span>
+                          <span className="font-mono font-bold text-sm text-black dark:text-white">${deal.value.toLocaleString()}</span>
                         )}
                         {deal.expectedCloseDate && (
-                          <span className="font-mono text-xs text-muted-foreground">
+                          <span className="font-mono text-xs text-gray-600 dark:text-gray-400">
                             Close: {new Date(deal.expectedCloseDate).toLocaleDateString()}
                           </span>
                         )}
