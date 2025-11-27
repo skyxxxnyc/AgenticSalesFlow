@@ -81,7 +81,7 @@ Please provide:
     const response = await openai.chat.completions.create({
       model: MODEL,
       messages,
-      max_completion_tokens: 2048,
+      max_tokens: 2048,
     });
 
     const content = response.choices[0]?.message?.content || "Unable to analyze lead at this time.";
@@ -116,7 +116,7 @@ Please provide:
     const response = await openai.chat.completions.create({
       model: MODEL,
       messages,
-      max_completion_tokens: 1024,
+      max_tokens: 1024,
     });
 
     return {
@@ -186,7 +186,7 @@ Generate 2 variations (A/B) with different approaches/angles.`
     const response = await openai.chat.completions.create({
       model: MODEL,
       messages,
-      max_completion_tokens: 1500,
+      max_tokens: 1500,
     });
 
     return {
@@ -211,7 +211,7 @@ Generate 2 variations (A/B) with different approaches/angles.`
     const response = await openai.chat.completions.create({
       model: MODEL,
       messages,
-      max_completion_tokens: 1024,
+      max_tokens: 1024,
     });
 
     return {
@@ -281,7 +281,7 @@ Please provide:
     const response = await openai.chat.completions.create({
       model: MODEL,
       messages,
-      max_completion_tokens: 2048,
+      max_tokens: 2048,
     });
 
     return {
@@ -318,7 +318,7 @@ Please provide:
     const response = await openai.chat.completions.create({
       model: MODEL,
       messages,
-      max_completion_tokens: 1024,
+      max_tokens: 1024,
     });
 
     return {
