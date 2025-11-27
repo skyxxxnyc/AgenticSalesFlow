@@ -3,6 +3,9 @@ import {
   leads,
   campaigns,
   agentConfigs,
+  activities,
+  tasks,
+  deals,
   type User,
   type UpsertUser,
   type Lead,
@@ -11,6 +14,12 @@ import {
   type InsertCampaign,
   type AgentConfig,
   type InsertAgentConfig,
+  type Activity,
+  type InsertActivity,
+  type Task,
+  type InsertTask,
+  type Deal,
+  type InsertDeal,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and } from "drizzle-orm";
@@ -38,6 +47,21 @@ export interface IStorage {
   getAgentConfigs(userId: string): Promise<AgentConfig[]>;
   getAgentConfig(id: string, userId: string): Promise<AgentConfig | undefined>;
   upsertAgentConfig(config: InsertAgentConfig): Promise<AgentConfig>;
+
+  // Activity operations
+  getActivities(leadId: string, userId: string): Promise<Activity[]>;
+  createActivity(activity: InsertActivity): Promise<Activity>;
+
+  // Task operations
+  getTasks(leadId: string, userId: string): Promise<Task[]>;
+  createTask(task: InsertTask): Promise<Task>;
+  updateTask(id: string, userId: string, data: Partial<InsertTask>): Promise<Task | undefined>;
+  deleteTask(id: string, userId: string): Promise<boolean>;
+
+  // Deal operations
+  getDeals(leadId: string, userId: string): Promise<Deal[]>;
+  createDeal(deal: InsertDeal): Promise<Deal>;
+  updateDeal(id: string, userId: string, data: Partial<InsertDeal>): Promise<Deal | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -156,6 +180,73 @@ export class DatabaseStorage implements IStorage {
       })
       .returning();
     return config;
+  }
+
+  // Activity operations
+  async getActivities(leadId: string, userId: string): Promise<Activity[]> {
+    return await db
+      .select()
+      .from(activities)
+      .where(and(eq(activities.leadId, leadId), eq(activities.userId, userId)))
+      .orderBy(activities.createdAt);
+  }
+
+  async createActivity(activityData: InsertActivity): Promise<Activity> {
+    const [activity] = await db.insert(activities).values(activityData).returning();
+    return activity;
+  }
+
+  // Task operations
+  async getTasks(leadId: string, userId: string): Promise<Task[]> {
+    return await db
+      .select()
+      .from(tasks)
+      .where(and(eq(tasks.leadId, leadId), eq(tasks.userId, userId)))
+      .orderBy(tasks.dueDate);
+  }
+
+  async createTask(taskData: InsertTask): Promise<Task> {
+    const [task] = await db.insert(tasks).values(taskData).returning();
+    return task;
+  }
+
+  async updateTask(id: string, userId: string, data: Partial<InsertTask>): Promise<Task | undefined> {
+    const [task] = await db
+      .update(tasks)
+      .set({ ...data, updatedAt: new Date() })
+      .where(and(eq(tasks.id, id), eq(tasks.userId, userId)))
+      .returning();
+    return task;
+  }
+
+  async deleteTask(id: string, userId: string): Promise<boolean> {
+    const result = await db
+      .delete(tasks)
+      .where(and(eq(tasks.id, id), eq(tasks.userId, userId)));
+    return result.rowCount !== null && result.rowCount > 0;
+  }
+
+  // Deal operations
+  async getDeals(leadId: string, userId: string): Promise<Deal[]> {
+    return await db
+      .select()
+      .from(deals)
+      .where(and(eq(deals.leadId, leadId), eq(deals.userId, userId)))
+      .orderBy(deals.createdAt);
+  }
+
+  async createDeal(dealData: InsertDeal): Promise<Deal> {
+    const [deal] = await db.insert(deals).values(dealData).returning();
+    return deal;
+  }
+
+  async updateDeal(id: string, userId: string, data: Partial<InsertDeal>): Promise<Deal | undefined> {
+    const [deal] = await db
+      .update(deals)
+      .set({ ...data, updatedAt: new Date() })
+      .where(and(eq(deals.id, id), eq(deals.userId, userId)))
+      .returning();
+    return deal;
   }
 }
 

@@ -52,8 +52,13 @@ export const leads = pgTable("leads", {
   email: varchar("email"),
   phone: varchar("phone"),
   linkedin: varchar("linkedin"),
+  website: varchar("website"),
+  companySize: varchar("company_size"),
+  industry: varchar("industry"),
   status: varchar("status").notNull().default("new"),
   score: integer("score").default(0),
+  notes: text("notes"),
+  sdrAnalysis: jsonb("sdr_analysis"),
   lastAction: varchar("last_action"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -67,6 +72,71 @@ export const insertLeadSchema = createInsertSchema(leads).omit({
 
 export type InsertLead = z.infer<typeof insertLeadSchema>;
 export type Lead = typeof leads.$inferSelect;
+
+// Activity history table
+export const activities = pgTable("activities", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  leadId: varchar("lead_id").notNull().references(() => leads.id),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  type: varchar("type").notNull(),
+  title: varchar("title").notNull(),
+  description: text("description"),
+  metadata: jsonb("metadata"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertActivitySchema = createInsertSchema(activities).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertActivity = z.infer<typeof insertActivitySchema>;
+export type Activity = typeof activities.$inferSelect;
+
+// Tasks/Reminders table
+export const tasks = pgTable("tasks", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  leadId: varchar("lead_id").notNull().references(() => leads.id),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  title: varchar("title").notNull(),
+  description: text("description"),
+  dueDate: timestamp("due_date"),
+  completed: boolean("completed").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertTaskSchema = createInsertSchema(tasks).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertTask = z.infer<typeof insertTaskSchema>;
+export type Task = typeof tasks.$inferSelect;
+
+// Deals/Projects table
+export const deals = pgTable("deals", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  leadId: varchar("lead_id").notNull().references(() => leads.id),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  title: varchar("title").notNull(),
+  description: text("description"),
+  value: integer("value"),
+  status: varchar("status").notNull().default("prospect"),
+  expectedCloseDate: timestamp("expected_close_date"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertDealSchema = createInsertSchema(deals).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertDeal = z.infer<typeof insertDealSchema>;
+export type Deal = typeof deals.$inferSelect;
 
 // Campaigns table
 export const campaigns = pgTable("campaigns", {
