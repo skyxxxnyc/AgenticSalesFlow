@@ -6,6 +6,9 @@ import {
   activities,
   tasks,
   deals,
+  knowledgeDocuments,
+  agentMessages,
+  agentActions,
   type User,
   type UpsertUser,
   type Lead,
@@ -20,9 +23,15 @@ import {
   type InsertTask,
   type Deal,
   type InsertDeal,
+  type KnowledgeDocument,
+  type InsertKnowledgeDocument,
+  type AgentMessage,
+  type InsertAgentMessage,
+  type AgentAction,
+  type InsertAgentAction,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and } from "drizzle-orm";
+import { eq, and, desc } from "drizzle-orm";
 
 export interface IStorage {
   // User operations - REQUIRED for Replit Auth
@@ -62,6 +71,23 @@ export interface IStorage {
   getDeals(leadId: string, userId: string): Promise<Deal[]>;
   createDeal(deal: InsertDeal): Promise<Deal>;
   updateDeal(id: string, userId: string, data: Partial<InsertDeal>): Promise<Deal | undefined>;
+
+  // Knowledge document operations
+  getKnowledgeDocuments(userId: string, category?: string): Promise<KnowledgeDocument[]>;
+  getKnowledgeDocument(id: string, userId: string): Promise<KnowledgeDocument | undefined>;
+  createKnowledgeDocument(doc: InsertKnowledgeDocument): Promise<KnowledgeDocument>;
+  updateKnowledgeDocument(id: string, userId: string, data: Partial<InsertKnowledgeDocument>): Promise<KnowledgeDocument | undefined>;
+  deleteKnowledgeDocument(id: string, userId: string): Promise<boolean>;
+
+  // Agent message operations
+  getAgentMessages(userId: string, agentName: string, limit?: number): Promise<AgentMessage[]>;
+  createAgentMessage(message: InsertAgentMessage): Promise<AgentMessage>;
+  clearAgentMessages(userId: string, agentName: string): Promise<boolean>;
+
+  // Agent action operations
+  getAgentActions(userId: string, agentName?: string): Promise<AgentAction[]>;
+  createAgentAction(action: InsertAgentAction): Promise<AgentAction>;
+  updateAgentAction(id: string, data: Partial<AgentAction>): Promise<AgentAction | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -247,6 +273,105 @@ export class DatabaseStorage implements IStorage {
       .where(and(eq(deals.id, id), eq(deals.userId, userId)))
       .returning();
     return deal;
+  }
+
+  // Knowledge document operations
+  async getKnowledgeDocuments(userId: string, category?: string): Promise<KnowledgeDocument[]> {
+    if (category) {
+      return await db
+        .select()
+        .from(knowledgeDocuments)
+        .where(and(eq(knowledgeDocuments.userId, userId), eq(knowledgeDocuments.category, category)))
+        .orderBy(desc(knowledgeDocuments.createdAt));
+    }
+    return await db
+      .select()
+      .from(knowledgeDocuments)
+      .where(eq(knowledgeDocuments.userId, userId))
+      .orderBy(desc(knowledgeDocuments.createdAt));
+  }
+
+  async getKnowledgeDocument(id: string, userId: string): Promise<KnowledgeDocument | undefined> {
+    const [doc] = await db
+      .select()
+      .from(knowledgeDocuments)
+      .where(and(eq(knowledgeDocuments.id, id), eq(knowledgeDocuments.userId, userId)));
+    return doc;
+  }
+
+  async createKnowledgeDocument(docData: InsertKnowledgeDocument): Promise<KnowledgeDocument> {
+    const [doc] = await db.insert(knowledgeDocuments).values(docData).returning();
+    return doc;
+  }
+
+  async updateKnowledgeDocument(id: string, userId: string, data: Partial<InsertKnowledgeDocument>): Promise<KnowledgeDocument | undefined> {
+    const [doc] = await db
+      .update(knowledgeDocuments)
+      .set({ ...data, updatedAt: new Date() })
+      .where(and(eq(knowledgeDocuments.id, id), eq(knowledgeDocuments.userId, userId)))
+      .returning();
+    return doc;
+  }
+
+  async deleteKnowledgeDocument(id: string, userId: string): Promise<boolean> {
+    const result = await db
+      .delete(knowledgeDocuments)
+      .where(and(eq(knowledgeDocuments.id, id), eq(knowledgeDocuments.userId, userId)));
+    return result.rowCount !== null && result.rowCount > 0;
+  }
+
+  // Agent message operations
+  async getAgentMessages(userId: string, agentName: string, limit: number = 50): Promise<AgentMessage[]> {
+    return await db
+      .select()
+      .from(agentMessages)
+      .where(and(eq(agentMessages.userId, userId), eq(agentMessages.agentName, agentName)))
+      .orderBy(agentMessages.createdAt)
+      .limit(limit);
+  }
+
+  async createAgentMessage(messageData: InsertAgentMessage): Promise<AgentMessage> {
+    const [message] = await db.insert(agentMessages).values(messageData).returning();
+    return message;
+  }
+
+  async clearAgentMessages(userId: string, agentName: string): Promise<boolean> {
+    const result = await db
+      .delete(agentMessages)
+      .where(and(eq(agentMessages.userId, userId), eq(agentMessages.agentName, agentName)));
+    return result.rowCount !== null && result.rowCount >= 0;
+  }
+
+  // Agent action operations
+  async getAgentActions(userId: string, agentName?: string): Promise<AgentAction[]> {
+    if (agentName) {
+      return await db
+        .select()
+        .from(agentActions)
+        .where(and(eq(agentActions.userId, userId), eq(agentActions.agentName, agentName)))
+        .orderBy(desc(agentActions.createdAt))
+        .limit(100);
+    }
+    return await db
+      .select()
+      .from(agentActions)
+      .where(eq(agentActions.userId, userId))
+      .orderBy(desc(agentActions.createdAt))
+      .limit(100);
+  }
+
+  async createAgentAction(actionData: InsertAgentAction): Promise<AgentAction> {
+    const [action] = await db.insert(agentActions).values(actionData).returning();
+    return action;
+  }
+
+  async updateAgentAction(id: string, data: Partial<AgentAction>): Promise<AgentAction | undefined> {
+    const [action] = await db
+      .update(agentActions)
+      .set(data)
+      .where(eq(agentActions.id, id))
+      .returning();
+    return action;
   }
 }
 

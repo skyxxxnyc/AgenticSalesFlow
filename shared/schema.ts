@@ -181,3 +181,67 @@ export const insertAgentConfigSchema = createInsertSchema(agentConfigs).omit({
 
 export type InsertAgentConfig = z.infer<typeof insertAgentConfigSchema>;
 export type AgentConfig = typeof agentConfigs.$inferSelect;
+
+// Knowledge base documents table
+export const knowledgeDocuments = pgTable("knowledge_documents", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  title: varchar("title").notNull(),
+  content: text("content").notNull(),
+  category: varchar("category").notNull(), // 'qualification', 'outreach', 'objection', 'industry', 'product'
+  tags: text("tags").array(),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertKnowledgeDocumentSchema = createInsertSchema(knowledgeDocuments).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertKnowledgeDocument = z.infer<typeof insertKnowledgeDocumentSchema>;
+export type KnowledgeDocument = typeof knowledgeDocuments.$inferSelect;
+
+// Agent chat messages table
+export const agentMessages = pgTable("agent_messages", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  agentName: varchar("agent_name").notNull(), // 'hunter', 'scribe', 'oracle'
+  role: varchar("role").notNull(), // 'user', 'assistant'
+  content: text("content").notNull(),
+  metadata: jsonb("metadata"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertAgentMessageSchema = createInsertSchema(agentMessages).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertAgentMessage = z.infer<typeof insertAgentMessageSchema>;
+export type AgentMessage = typeof agentMessages.$inferSelect;
+
+// Agent action logs table
+export const agentActions = pgTable("agent_actions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  agentName: varchar("agent_name").notNull(),
+  actionType: varchar("action_type").notNull(), // 'analyze_lead', 'generate_outreach', 'pipeline_insight'
+  targetId: varchar("target_id"), // lead_id or campaign_id
+  input: jsonb("input"),
+  output: jsonb("output"),
+  status: varchar("status").notNull().default("pending"), // 'pending', 'running', 'completed', 'failed'
+  createdAt: timestamp("created_at").defaultNow(),
+  completedAt: timestamp("completed_at"),
+});
+
+export const insertAgentActionSchema = createInsertSchema(agentActions).omit({
+  id: true,
+  createdAt: true,
+  completedAt: true,
+});
+
+export type InsertAgentAction = z.infer<typeof insertAgentActionSchema>;
+export type AgentAction = typeof agentActions.$inferSelect;
