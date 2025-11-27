@@ -1,6 +1,7 @@
 import React from "react";
 import { Link, useLocation } from "wouter";
-import { LayoutDashboard, Users, Zap, Database, Settings, Bell } from "lucide-react";
+import { LayoutDashboard, Users, Zap, Database, Settings, Bell, LogOut } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 const NavItem = ({ href, icon: Icon, label }: { href: string; icon: any; label: string }) => {
   const [location] = useLocation();
@@ -25,6 +26,27 @@ const NavItem = ({ href, icon: Icon, label }: { href: string; icon: any; label: 
 };
 
 export default function Layout({ children }: { children: React.ReactNode }) {
+  const { user } = useAuth();
+  
+  const getInitials = () => {
+    if (!user) return "U";
+    if (user.firstName && user.lastName) {
+      return `${user.firstName[0]}${user.lastName[0]}`.toUpperCase();
+    }
+    if (user.email) {
+      return user.email[0].toUpperCase();
+    }
+    return "U";
+  };
+
+  const getDisplayName = () => {
+    if (!user) return "User";
+    if (user.firstName || user.lastName) {
+      return `${user.firstName || ""} ${user.lastName || ""}`.trim();
+    }
+    return user.email || "User";
+  };
+  
   return (
     <div className="min-h-screen bg-background flex flex-col md:flex-row overflow-hidden">
       {/* Sidebar */}
@@ -64,11 +86,27 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               <Bell className="w-5 h-5" />
             </button>
             <div className="flex items-center gap-3 border-2 border-black px-3 py-1 bg-white neo-shadow">
-              <div className="w-8 h-8 bg-primary rounded-none border-2 border-black flex items-center justify-center font-bold text-white">
-                JD
-              </div>
-              <span className="font-bold font-mono text-sm hidden sm:inline">John Doe</span>
+              {user?.profileImageUrl ? (
+                <img 
+                  src={user.profileImageUrl} 
+                  alt={getDisplayName()} 
+                  className="w-8 h-8 border-2 border-black object-cover"
+                />
+              ) : (
+                <div className="w-8 h-8 bg-primary rounded-none border-2 border-black flex items-center justify-center font-bold text-white text-xs">
+                  {getInitials()}
+                </div>
+              )}
+              <span className="font-bold font-mono text-sm hidden sm:inline">{getDisplayName()}</span>
             </div>
+            <a 
+              href="/api/logout"
+              className="p-2 border-2 border-black hover:bg-destructive hover:text-white transition-colors neo-shadow-hover"
+              title="Logout"
+              data-testid="button-logout"
+            >
+              <LogOut className="w-5 h-5" />
+            </a>
           </div>
         </header>
         <div className="p-6 max-w-7xl mx-auto">
