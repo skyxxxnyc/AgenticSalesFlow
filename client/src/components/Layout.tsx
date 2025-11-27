@@ -2,6 +2,7 @@ import React from "react";
 import { Link, useLocation } from "wouter";
 import { LayoutDashboard, Users, Zap, Database, Settings, Bell, LogOut } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import ThemeToggle from "@/components/ThemeToggle";
 
 const NavItem = ({ href, icon: Icon, label }: { href: string; icon: any; label: string }) => {
   const [location] = useLocation();
@@ -82,6 +83,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           </div>
           
           <div className="flex items-center gap-4">
+            <ThemeToggle />
             <button className="p-2 border-2 border-black hover:bg-accent hover:text-white transition-colors neo-shadow-hover">
               <Bell className="w-5 h-5" />
             </button>
