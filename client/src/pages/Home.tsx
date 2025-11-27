@@ -24,13 +24,13 @@ export default function Home() {
     <Layout>
       <div className="space-y-8">
         {/* Header Section */}
-        <div className="flex flex-col md:flex-row justify-between items-end gap-4 border-b-2 border-black pb-6">
+        <div className="flex flex-col md:flex-row justify-between items-end gap-4 border-b-2 border-black dark:border-white pb-6">
           <div>
-            <h2 className="text-4xl font-black uppercase tracking-tighter mb-2">Dashboard</h2>
-            <p className="font-mono text-sm font-bold text-muted-foreground">System Status: <span className="text-green-600">OPTIMAL</span></p>
+            <h2 className="text-4xl font-black uppercase tracking-tighter mb-2 text-black dark:text-white">Dashboard</h2>
+            <p className="font-mono text-sm font-bold text-gray-600 dark:text-gray-300">System Status: <span className="text-green-600 dark:text-green-400">OPTIMAL</span></p>
           </div>
           <div className="flex gap-2">
-             <button className="bg-primary text-white px-6 py-3 font-bold uppercase border-2 border-black neo-shadow hover:translate-x-[-2px] hover:translate-y-[-2px] transition-transform">
+             <button className="bg-primary text-white px-6 py-3 font-bold uppercase border-2 border-black dark:border-white neo-shadow hover:translate-x-[-2px] hover:translate-y-[-2px] transition-transform">
                 + New Campaign
              </button>
           </div>
@@ -48,10 +48,10 @@ export default function Home() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
           {/* Chart Section */}
-          <div className="lg:col-span-2 bg-white border-2 border-black neo-shadow p-6">
+          <div className="lg:col-span-2 bg-white dark:bg-slate-900 border-2 border-black dark:border-white neo-shadow p-6">
             <div className="flex justify-between items-center mb-6">
-               <h3 className="text-xl font-black uppercase">Pipeline Velocity</h3>
-               <select className="border-2 border-black px-2 py-1 font-mono text-sm font-bold bg-transparent">
+               <h3 className="text-xl font-black uppercase text-black dark:text-white">Pipeline Velocity</h3>
+               <select className="border-2 border-black dark:border-white px-2 py-1 font-mono text-sm font-bold bg-transparent text-black dark:text-white">
                  <option>Last 7 Days</option>
                  <option>Last 30 Days</option>
                </select>
@@ -79,18 +79,18 @@ export default function Home() {
           </div>
 
           {/* Recent Activity Feed */}
-          <div className="bg-white border-2 border-black neo-shadow p-0 flex flex-col">
-             <div className="p-4 border-b-2 border-black bg-black text-white">
+          <div className="bg-white dark:bg-slate-900 border-2 border-black dark:border-white neo-shadow p-0 flex flex-col">
+             <div className="p-4 border-b-2 border-black dark:border-white bg-black text-white">
                <h3 className="text-lg font-black uppercase">Live Intelligence</h3>
              </div>
              <div className="flex-1 overflow-y-auto p-4 space-y-4 max-h-[340px]">
                {[1, 2, 3, 4, 5].map((i) => (
-                 <div key={i} className="flex gap-3 items-start border-b border-dashed border-black/20 pb-3 last:border-0">
+                 <div key={i} className="flex gap-3 items-start border-b border-dashed border-black/20 dark:border-white/20 pb-3 last:border-0">
                    <div className="w-2 h-2 bg-accent rounded-full mt-1.5 shrink-0" />
                    <div>
-                     <p className="text-sm font-bold">Buying Signal Detected</p>
-                     <p className="text-xs font-mono text-muted-foreground mt-1">TechStart Inc. just raised Series B funding.</p>
-                     <span className="text-[10px] font-black bg-secondary px-1 mt-2 inline-block border border-black">HIGH PRIORITY</span>
+                     <p className="text-sm font-bold text-black dark:text-white">Buying Signal Detected</p>
+                     <p className="text-xs font-mono text-gray-600 dark:text-gray-400 mt-1">TechStart Inc. just raised Series B funding.</p>
+                     <span className="text-[10px] font-black bg-secondary text-black px-1 mt-2 inline-block border border-black">HIGH PRIORITY</span>
                    </div>
                  </div>
                ))}
@@ -100,7 +100,7 @@ export default function Home() {
 
         {/* Agents Section */}
         <div>
-          <h3 className="text-2xl font-black uppercase mb-6">Active Agents</h3>
+          <h3 className="text-2xl font-black uppercase mb-6 text-black dark:text-white">Active Agents</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <AgentCard 
               name="Hunter-01" 

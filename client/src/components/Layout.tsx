@@ -54,15 +54,15 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       <aside className="w-full md:w-64 bg-sidebar border-r-2 border-black dark:border-white flex flex-col h-screen sticky top-0 z-50">
         <div className="p-6 border-b-2 border-black dark:border-white bg-primary">
           <h1 className="text-2xl font-black uppercase tracking-tighter italic text-white">
-            AutoSales<span className="text-black">.ai</span>
+            AutoSales<span className="text-secondary">.ai</span>
           </h1>
-          <div className="text-xs font-mono mt-1 font-bold text-black bg-white inline-block px-1">
+          <div className="text-xs font-mono mt-1 font-bold text-black bg-secondary inline-block px-1 border border-black">
             V2.0.26 BETA
           </div>
         </div>
 
         <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
-          <div className="text-xs font-bold uppercase text-muted-foreground mb-4 font-mono px-2">Command Center</div>
+          <div className="text-xs font-bold uppercase text-black dark:text-white mb-4 font-mono px-2">Command Center</div>
           <NavItem href="/" icon={LayoutDashboard} label="Dashboard" />
           <NavItem href="/agents" icon={Zap} label="Active Agents" />
           <NavItem href="/leads" icon={Users} label="Lead Pipeline" />
@@ -79,15 +79,15 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         <header className="h-16 border-b-2 border-black dark:border-white flex items-center justify-between px-6 bg-background sticky top-0 z-40">
           <div className="flex items-center gap-2">
              <div className="w-3 h-3 bg-green-500 border-2 border-black rounded-full animate-pulse"></div>
-             <span className="font-mono text-sm font-bold uppercase">System Operational</span>
+             <span className="font-mono text-sm font-bold uppercase text-black dark:text-white">System Operational</span>
           </div>
           
           <div className="flex items-center gap-4">
             <ThemeToggle />
-            <button className="p-2 border-2 border-black hover:bg-accent hover:text-white transition-colors neo-shadow-hover">
+            <button className="p-2 border-2 border-black dark:border-white hover:bg-accent hover:text-white transition-colors neo-shadow-hover text-black dark:text-white">
               <Bell className="w-5 h-5" />
             </button>
-            <div className="flex items-center gap-3 border-2 border-black px-3 py-1 bg-white neo-shadow">
+            <div className="flex items-center gap-3 border-2 border-black dark:border-white px-3 py-1 bg-white dark:bg-slate-800 neo-shadow">
               {user?.profileImageUrl ? (
                 <img 
                   src={user.profileImageUrl} 
@@ -99,11 +99,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   {getInitials()}
                 </div>
               )}
-              <span className="font-bold font-mono text-sm hidden sm:inline">{getDisplayName()}</span>
+              <span className="font-bold font-mono text-sm hidden sm:inline text-black dark:text-white">{getDisplayName()}</span>
             </div>
             <a 
               href="/api/logout"
-              className="p-2 border-2 border-black hover:bg-destructive hover:text-white transition-colors neo-shadow-hover"
+              className="p-2 border-2 border-black dark:border-white hover:bg-destructive hover:text-white transition-colors neo-shadow-hover text-black dark:text-white"
               title="Logout"
               data-testid="button-logout"
             >

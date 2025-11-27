@@ -14,13 +14,13 @@ export default function MetricCard({ label, value, trend, trendUp, color = "whit
     primary: "bg-primary text-white",
     secondary: "bg-secondary text-black",
     accent: "bg-accent text-white",
-    white: "bg-white text-black",
+    white: "bg-white dark:bg-slate-800 text-black dark:text-white",
   };
 
   return (
     <motion.div 
       whileHover={{ translate: "-4px -4px", boxShadow: "8px 8px 0px 0px black" }}
-      className={`p-6 border-2 border-black neo-shadow ${bgColors[color]} relative overflow-hidden group`}
+      className={`p-6 border-2 border-black dark:border-white neo-shadow ${bgColors[color]} relative overflow-hidden group`}
     >
       <div className="relative z-10">
         <div className="font-mono text-xs font-bold uppercase tracking-wider opacity-80 mb-2 border-b-2 border-black/20 pb-1 inline-block">
