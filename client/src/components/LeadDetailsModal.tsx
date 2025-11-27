@@ -64,11 +64,11 @@ export default function LeadDetailsModal({ lead, isOpen, onClose }: LeadDetailsM
 
   // Update task completion
   const updateTaskMutation = useMutation({
-    mutationFn: async (taskId: string, completed: boolean) => {
-      const res = await fetch(`/api/leads/${lead.id}/tasks/${taskId}`, {
+    mutationFn: async (payload: { taskId: string; completed: boolean }) => {
+      const res = await fetch(`/api/leads/${lead.id}/tasks/${payload.taskId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ completed }),
+        body: JSON.stringify({ completed: payload.completed }),
       });
       if (!res.ok) throw new Error("Failed to update task");
       return res.json();
@@ -202,8 +202,8 @@ export default function LeadDetailsModal({ lead, isOpen, onClose }: LeadDetailsM
                 </div>
                 <div className="mt-3 h-3 bg-gray-200 dark:bg-slate-700 rounded-none border-2 border-black dark:border-white overflow-hidden">
                   <div 
-                    className={`h-full ${lead.score > 80 ? 'bg-green-500' : lead.score > 50 ? 'bg-yellow-500' : 'bg-red-500'}`}
-                    style={{ width: `${lead.score}%` }}
+                    className={`h-full ${(lead.score ?? 0) > 80 ? 'bg-green-500' : (lead.score ?? 0) > 50 ? 'bg-yellow-500' : 'bg-red-500'}`}
+                    style={{ width: `${lead.score ?? 0}%` }}
                   />
                 </div>
               </div>
@@ -290,7 +290,7 @@ export default function LeadDetailsModal({ lead, isOpen, onClose }: LeadDetailsM
                     <div
                       key={task.id}
                       className="flex items-center gap-3 p-3 border-2 border-black dark:border-white hover:bg-gray-50 dark:hover:bg-slate-800 cursor-pointer transition-colors"
-                      onClick={() => updateTaskMutation.mutate(task.id, !task.completed)}
+                      onClick={() => updateTaskMutation.mutate({ taskId: task.id, completed: !task.completed })}
                       data-testid={`task-item-${task.id}`}
                     >
                       <button
@@ -308,7 +308,7 @@ export default function LeadDetailsModal({ lead, isOpen, onClose }: LeadDetailsM
                       </div>
                       {task.dueDate && (
                         <span className="font-mono text-xs text-muted-foreground">
-                          {new Date(task.dueDate).toLocaleDateString()}
+                          {new Date(task.dueDate as string).toLocaleDateString()}
                         </span>
                       )}
                     </div>

@@ -1,184 +1,319 @@
-import React, { useState } from "react";
-import Layout from "@/components/Layout";
-import LeadDetailsModal from "@/components/LeadDetailsModal";
-import { Search, Filter, Mail, Phone, Linkedin } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
-import type { Lead } from "@shared/schema";
+import type { Express } from "express";
+import { type Server } from "http";
+import { storage } from "./storage";
+import { setupAuth, isAuthenticated } from "./replitAuth";
+import { insertLeadSchema, insertCampaignSchema, insertAgentConfigSchema, insertActivitySchema, insertTaskSchema, insertDealSchema } from "@shared/schema";
 
-export default function Leads() {
-  const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
-  const [searchQuery, setSearchQuery] = useState("");
+export async function registerRoutes(httpServer: Server, app: Express): Promise<Server> {
+  // Auth middleware - from blueprint:javascript_log_in_with_replit
+  await setupAuth(app);
 
-  const { data: leads = [], isLoading } = useQuery({
-    queryKey: ["leads"],
-    queryFn: async () => {
-      const res = await fetch("/api/leads");
-      if (!res.ok) throw new Error("Failed to fetch leads");
-      return res.json();
-    },
+  // Auth routes
+  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      res.json(user);
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      res.status(500).json({ message: "Failed to fetch user" });
+    }
   });
 
-  const filteredLeads = leads.filter(
-    (lead: Lead) =>
-      lead.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      lead.company.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      lead.email?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Lead routes
+  app.get("/api/leads", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const userLeads = await storage.getLeads(userId);
+      res.json(userLeads);
+    } catch (error) {
+      console.error("Error fetching leads:", error);
+      res.status(500).json({ message: "Failed to fetch leads" });
+    }
+  });
 
-  return (
-    <Layout>
-      <div className="space-y-6">
-        <div className="flex flex-col md:flex-row justify-between items-end gap-4">
-          <div>
-            <h2 className="text-4xl font-black uppercase tracking-tighter mb-2">Lead Pipeline</h2>
-            <p className="font-mono text-sm font-bold text-muted-foreground">AI-Curated Opportunities</p>
-          </div>
-          <div className="flex gap-2 w-full md:w-auto">
-            <div className="relative flex-1 md:w-64">
-              <Search className="absolute left-3 top-3 w-5 h-5 text-muted-foreground" />
-              <input 
-                type="text" 
-                placeholder="Search leads..." 
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 border-2 border-black dark:border-white font-mono text-sm bg-white dark:bg-slate-900 neo-shadow focus:outline-none focus:ring-0"
-                data-testid="input-search-leads"
-              />
-            </div>
-            <button className="p-3 border-2 border-black dark:border-white bg-white dark:bg-slate-900 neo-shadow hover:bg-accent hover:text-white dark:hover:bg-accent transition-colors" data-testid="button-filter-leads">
-              <Filter className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
+  app.get("/api/leads/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const lead = await storage.getLead(req.params.id, userId);
+      if (!lead) {
+        return res.status(404).json({ message: "Lead not found" });
+      }
+      res.json(lead);
+    } catch (error) {
+      console.error("Error fetching lead:", error);
+      res.status(500).json({ message: "Failed to fetch lead" });
+    }
+  });
 
-        <div className="border-2 border-black dark:border-white bg-white dark:bg-slate-900 neo-shadow overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-black dark:bg-slate-800 text-white uppercase font-mono text-xs border-b-2 border-black dark:border-white">
-                  <th className="p-4 font-bold tracking-wider">Lead Name</th>
-                  <th className="p-4 font-bold tracking-wider">Company</th>
-                  <th className="p-4 font-bold tracking-wider">AI Score</th>
-                  <th className="p-4 font-bold tracking-wider">Status</th>
-                  <th className="p-4 font-bold tracking-wider">Last Action</th>
-                  <th className="p-4 font-bold tracking-wider text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="font-mono text-sm">
-                {isLoading ? (
-                  <tr>
-                    <td colSpan={6} className="p-4 text-center text-muted-foreground">Loading leads...</td>
-                  </tr>
-                ) : filteredLeads.length === 0 ? (
-                  <tr>
-                    <td colSpan={6} className="p-4 text-center text-muted-foreground">No leads found</td>
-                  </tr>
-                ) : (
-                  filteredLeads.map((lead: Lead) => (
-                    <tr 
-                      key={lead.id} 
-                      className="border-b border-black dark:border-white hover:bg-secondary/10 dark:hover:bg-slate-800 transition-colors group cursor-pointer"
-                      onClick={() => setSelectedLead(lead)}
-                      data-testid={`row-lead-${lead.id}`}
-                    >
-                      <td className="p-4 font-bold font-sans text-base flex items-center gap-3">
-                        <div className="w-8 h-8 bg-gray-200 dark:bg-slate-700 border border-black dark:border-white rounded-full overflow-hidden">
-                          <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${lead.name}`} alt={lead.name} />
-                        </div>
-                        {lead.name}
-                      </td>
-                      <td className="p-4">
-                        <div className="font-bold">{lead.company}</div>
-                        <div className="text-xs text-muted-foreground">{lead.role || "Contact"}</div>
-                      </td>
-                      <td className="p-4">
-                        <div className="flex items-center gap-2">
-                          <div className="h-2 flex-1 bg-gray-200 dark:bg-slate-700 w-12 rounded-none border border-black dark:border-white overflow-hidden">
-                            <div 
-                              className={`h-full ${lead.score > 80 ? 'bg-green-500' : lead.score > 50 ? 'bg-yellow-500' : 'bg-red-500'}`} 
-                              style={{ width: `${lead.score}%` }} 
-                            />
-                          </div>
-                          <span className="font-bold">{lead.score}</span>
-                        </div>
-                      </td>
-                      <td className="p-4">
-                        <span 
-                          className={`px-2 py-1 text-xs font-black uppercase border border-black dark:border-white ${
-                            lead.status === 'hot' ? 'bg-accent text-white' : 
-                            lead.status === 'new' ? 'bg-secondary dark:bg-slate-700' : 
-                            'bg-white dark:bg-slate-800'
-                          }`}
-                          data-testid={`status-${lead.id}`}
-                        >
-                          {lead.status}
-                        </span>
-                      </td>
-                      <td className="p-4 text-muted-foreground font-bold text-xs">
-                        {lead.lastAction || "—"}
-                      </td>
-                      <td className="p-4 text-right">
-                        <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                          {lead.email && (
-                            <a 
-                              href={`mailto:${lead.email}`}
-                              className="p-1 hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black border border-transparent hover:border-black dark:hover:border-white transition-colors"
-                              title="Email"
-                              onClick={(e) => e.stopPropagation()}
-                              data-testid={`link-email-action-${lead.id}`}
-                            >
-                              <Mail className="w-4 h-4" />
-                            </a>
-                          )}
-                          {lead.phone && (
-                            <a 
-                              href={`tel:${lead.phone}`}
-                              className="p-1 hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black border border-transparent hover:border-black dark:hover:border-white transition-colors"
-                              title="Call"
-                              onClick={(e) => e.stopPropagation()}
-                              data-testid={`link-phone-action-${lead.id}`}
-                            >
-                              <Phone className="w-4 h-4" />
-                            </a>
-                          )}
-                          {lead.linkedin && (
-                            <a 
-                              href={lead.linkedin}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="p-1 hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black border border-transparent hover:border-black dark:hover:border-white transition-colors"
-                              title="LinkedIn"
-                              onClick={(e) => e.stopPropagation()}
-                              data-testid={`link-linkedin-action-${lead.id}`}
-                            >
-                              <Linkedin className="w-4 h-4" />
-                            </a>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-          <div className="p-4 border-t-2 border-black dark:border-white bg-gray-50 dark:bg-slate-800 flex justify-between items-center font-mono text-xs">
-            <span className="font-bold">Showing {filteredLeads.length} of {leads.length} Leads</span>
-            <div className="flex gap-2">
-              <button className="px-3 py-1 border border-black dark:border-white bg-white dark:bg-slate-900 hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors" data-testid="button-prev-page">Prev</button>
-              <button className="px-3 py-1 border border-black dark:border-white bg-white dark:bg-slate-900 hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors" data-testid="button-next-page">Next</button>
-            </div>
-          </div>
-        </div>
-      </div>
+  app.post("/api/leads", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const leadData = insertLeadSchema.parse({ ...req.body, userId });
+      const lead = await storage.createLead(leadData);
+      res.status(201).json(lead);
+    } catch (error) {
+      console.error("Error creating lead:", error);
+      res.status(400).json({ message: "Failed to create lead" });
+    }
+  });
 
-      {selectedLead && (
-        <LeadDetailsModal 
-          lead={selectedLead} 
-          isOpen={true} 
-          onClose={() => setSelectedLead(null)} 
-        />
-      )}
-    </Layout>
-  );
+  app.patch("/api/leads/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const lead = await storage.updateLead(req.params.id, userId, req.body);
+      if (!lead) {
+        return res.status(404).json({ message: "Lead not found" });
+      }
+      res.json(lead);
+    } catch (error) {
+      console.error("Error updating lead:", error);
+      res.status(500).json({ message: "Failed to update lead" });
+    }
+  });
+
+  app.delete("/api/leads/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const deleted = await storage.deleteLead(req.params.id, userId);
+      if (!deleted) {
+        return res.status(404).json({ message: "Lead not found" });
+      }
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting lead:", error);
+      res.status(500).json({ message: "Failed to delete lead" });
+    }
+  });
+
+  // Activity routes
+  app.get("/api/leads/:leadId/activities", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const activities = await storage.getActivities(req.params.leadId, userId);
+      res.json(activities);
+    } catch (error) {
+      console.error("Error fetching activities:", error);
+      res.status(500).json({ message: "Failed to fetch activities" });
+    }
+  });
+
+  app.post("/api/leads/:leadId/activities", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const activityData = insertActivitySchema.parse({
+        ...req.body,
+        leadId: req.params.leadId,
+        userId,
+      });
+      const activity = await storage.createActivity(activityData);
+      res.status(201).json(activity);
+    } catch (error) {
+      console.error("Error creating activity:", error);
+      res.status(400).json({ message: "Failed to create activity" });
+    }
+  });
+
+  // Task routes
+  app.get("/api/leads/:leadId/tasks", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const tasks = await storage.getTasks(req.params.leadId, userId);
+      res.json(tasks);
+    } catch (error) {
+      console.error("Error fetching tasks:", error);
+      res.status(500).json({ message: "Failed to fetch tasks" });
+    }
+  });
+
+  app.post("/api/leads/:leadId/tasks", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const taskData = insertTaskSchema.parse({
+        ...req.body,
+        leadId: req.params.leadId,
+        userId,
+      });
+      const task = await storage.createTask(taskData);
+      res.status(201).json(task);
+    } catch (error) {
+      console.error("Error creating task:", error);
+      res.status(400).json({ message: "Failed to create task" });
+    }
+  });
+
+  app.patch("/api/leads/:leadId/tasks/:taskId", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const task = await storage.updateTask(req.params.taskId, userId, req.body);
+      if (!task) {
+        return res.status(404).json({ message: "Task not found" });
+      }
+      res.json(task);
+    } catch (error) {
+      console.error("Error updating task:", error);
+      res.status(500).json({ message: "Failed to update task" });
+    }
+  });
+
+  app.delete("/api/leads/:leadId/tasks/:taskId", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const deleted = await storage.deleteTask(req.params.taskId, userId);
+      if (!deleted) {
+        return res.status(404).json({ message: "Task not found" });
+      }
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting task:", error);
+      res.status(500).json({ message: "Failed to delete task" });
+    }
+  });
+
+  // Deal routes
+  app.get("/api/leads/:leadId/deals", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const deals = await storage.getDeals(req.params.leadId, userId);
+      res.json(deals);
+    } catch (error) {
+      console.error("Error fetching deals:", error);
+      res.status(500).json({ message: "Failed to fetch deals" });
+    }
+  });
+
+  app.post("/api/leads/:leadId/deals", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const dealData = insertDealSchema.parse({
+        ...req.body,
+        leadId: req.params.leadId,
+        userId,
+      });
+      const deal = await storage.createDeal(dealData);
+      res.status(201).json(deal);
+    } catch (error) {
+      console.error("Error creating deal:", error);
+      res.status(400).json({ message: "Failed to create deal" });
+    }
+  });
+
+  app.patch("/api/leads/:leadId/deals/:dealId", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const deal = await storage.updateDeal(req.params.dealId, userId, req.body);
+      if (!deal) {
+        return res.status(404).json({ message: "Deal not found" });
+      }
+      res.json(deal);
+    } catch (error) {
+      console.error("Error updating deal:", error);
+      res.status(500).json({ message: "Failed to update deal" });
+    }
+  });
+
+  // Campaign routes
+  app.get("/api/campaigns", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const userCampaigns = await storage.getCampaigns(userId);
+      res.json(userCampaigns);
+    } catch (error) {
+      console.error("Error fetching campaigns:", error);
+      res.status(500).json({ message: "Failed to fetch campaigns" });
+    }
+  });
+
+  app.get("/api/campaigns/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const campaign = await storage.getCampaign(req.params.id, userId);
+      if (!campaign) {
+        return res.status(404).json({ message: "Campaign not found" });
+      }
+      res.json(campaign);
+    } catch (error) {
+      console.error("Error fetching campaign:", error);
+      res.status(500).json({ message: "Failed to fetch campaign" });
+    }
+  });
+
+  app.post("/api/campaigns", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const campaignData = insertCampaignSchema.parse({ ...req.body, userId });
+      const campaign = await storage.createCampaign(campaignData);
+      res.status(201).json(campaign);
+    } catch (error) {
+      console.error("Error creating campaign:", error);
+      res.status(400).json({ message: "Failed to create campaign" });
+    }
+  });
+
+  app.patch("/api/campaigns/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const campaign = await storage.updateCampaign(req.params.id, userId, req.body);
+      if (!campaign) {
+        return res.status(404).json({ message: "Campaign not found" });
+      }
+      res.json(campaign);
+    } catch (error) {
+      console.error("Error updating campaign:", error);
+      res.status(500).json({ message: "Failed to update campaign" });
+    }
+  });
+
+  app.delete("/api/campaigns/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const deleted = await storage.deleteCampaign(req.params.id, userId);
+      if (!deleted) {
+        return res.status(404).json({ message: "Campaign not found" });
+      }
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting campaign:", error);
+      res.status(500).json({ message: "Failed to delete campaign" });
+    }
+  });
+
+  // Agent config routes
+  app.get("/api/agents", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const configs = await storage.getAgentConfigs(userId);
+      res.json(configs);
+    } catch (error) {
+      console.error("Error fetching agent configs:", error);
+      res.status(500).json({ message: "Failed to fetch agent configs" });
+    }
+  });
+
+  app.get("/api/agents/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const config = await storage.getAgentConfig(req.params.id, userId);
+      if (!config) {
+        return res.status(404).json({ message: "Agent config not found" });
+      }
+      res.json(config);
+    } catch (error) {
+      console.error("Error fetching agent config:", error);
+      res.status(500).json({ message: "Failed to fetch agent config" });
+    }
+  });
+
+  app.patch("/api/agents/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const config = await storage.upsertAgentConfig({ ...req.body, userId, id: req.params.id });
+      res.json(config);
+    } catch (error) {
+      console.error("Error updating agent config:", error);
+      res.status(500).json({ message: "Failed to update agent config" });
+    }
+  });
+
+  return httpServer;
 }

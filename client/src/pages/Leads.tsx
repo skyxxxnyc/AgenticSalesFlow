@@ -95,11 +95,11 @@ export default function Leads() {
                         <div className="flex items-center gap-2">
                           <div className="h-2 flex-1 bg-gray-200 dark:bg-slate-700 w-12 rounded-none border border-black dark:border-white overflow-hidden">
                             <div 
-                              className={`h-full ${lead.score > 80 ? 'bg-green-500' : lead.score > 50 ? 'bg-yellow-500' : 'bg-red-500'}`} 
-                              style={{ width: `${lead.score}%` }} 
+                              className={`h-full ${(lead.score ?? 0) > 80 ? 'bg-green-500' : (lead.score ?? 0) > 50 ? 'bg-yellow-500' : 'bg-red-500'}`} 
+                              style={{ width: `${lead.score ?? 0}%` }} 
                             />
                           </div>
-                          <span className="font-bold">{lead.score}</span>
+                          <span className="font-bold">{lead.score ?? 0}</span>
                         </div>
                       </td>
                       <td className="p-4">
